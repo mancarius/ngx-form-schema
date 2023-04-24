@@ -7,7 +7,9 @@
     "build": "ng build",
     "build:lib": "ng build ngx-form-schema",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test --watch=false",
+    "lint": "ng lint",
+    "get_version": "cat ./projects/schema-form/package.json | grep version  | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]'"
   },
   "private": true,
   "dependencies": {
@@ -23,7 +25,8 @@
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.12.0",
-    "jsep": "^1.3.8"
+    "jsep": "^1.3.8",
+    "ngx-form-schema": "file:projects/ngx-form-schema"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.0.5",
