@@ -141,7 +141,7 @@ export type FormSchemaConditions = {
 /**
  * Il template che definisce lo schema del campo, compreso di validazione, impostazioni di visualizzazione, ecc.
  */
-export type FieldSchemaTemplate<T extends string> = {
+export type FieldSchemaTemplate<UserRole extends string = ''> = {
   /** Etichetta del campo */
   label: string;
   /** Testo placeholder del campo */
@@ -185,18 +185,18 @@ export type FieldSchemaTemplate<T extends string> = {
   /** Suffisso campo */
   suffix?: string;
   /** Impostazioni permessi */
-  permissions?: FormSchemaPermissionSettings<T>;
+  permissions?: FormSchemaPermissionSettings<UserRole>;
   /** Permessi utente corrente */
-  userRoles?: T[];
+  userRoles?: UserRole[];
   /** Lista di valdatori */
   validators?: FormSchemaValidators;
   /** Elenco condizioni opzionali */
   conditions?: FormSchemaConditions
 }
 
-export type FormGroupSchemaTemplate<UserRole extends string> = {
+export type FormGroupSchemaTemplate<UserRole extends string = ''> = {
   conditions?: {},
   fields:
   | FormFieldSchema<UserRole>[]
-  | { [key: string]: FormControl<any> | FormGroup<any> | FormFieldSchema<UserRole> | FormGroupSchema<UserRole> }
+  | { [key: string]: FormControl<any> | FormGroup<any> | FormFieldSchema<UserRole> | FormGroupSchema<UserRole> | FieldSchemaTemplate<UserRole> }
 };
