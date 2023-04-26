@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
-import { NgxFormSchemaService } from './ngx-form-schema.service';
+import { NgxFormSchemaBuilder } from './ngx-form-schema.service';
 
 
 @NgModule({
-  providers: [NgxFormSchemaService],
+  providers: [NgxFormSchemaBuilder],
 })
 export class NgxFormSchemaModule { }

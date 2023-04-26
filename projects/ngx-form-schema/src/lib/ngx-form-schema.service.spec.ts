@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { NgxFormSchemaBuilder } from './ngx-form-schema.service';
 
-describe('NgxFormSchemaService', () => {
+describe('NgxFormSchemaBuilder', () => {
   let service: NgxFormSchemaBuilder;
 
   beforeEach(() => {
