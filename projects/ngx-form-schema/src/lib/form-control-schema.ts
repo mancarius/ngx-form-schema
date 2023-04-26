@@ -1,11 +1,11 @@
 import { FormArray, FormControl, FormControlOptions, FormGroup } from "@angular/forms";
 import { BehaviorSubject, shareReplay, Observable, filter, startWith, distinctUntilChanged, takeUntil, Subject } from "rxjs";
-import { FieldSchemaTemplate, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "./types";
+import { ControlSchemaTemplate, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "./types";
 import { compile, evalExpr } from 'jse-eval';
 import { get } from "./helpers";
 import { FormGroupSchema } from "./form-group-schema";
 
-type TemplateKeys = keyof FieldSchemaTemplate<string>;
+type TemplateKeys = keyof ControlSchemaTemplate<string>;
 
 type Writeable<T> = { -readonly [P in keyof T]-?: T[P] };
 
@@ -18,9 +18,9 @@ type Writeable<T> = { -readonly [P in keyof T]-?: T[P] };
  *
  * Il metodo `checkConditionsAndUpdateState` viene utilizzato per verificare le condizioni e aggiornare lo stato dello schema.
  *
- * @template Role il tipo di ruolo utente associato al campo
+ * @template UserRole il tipo di ruolo utente associato al campo
  */
-export class FormFieldSchema<UserRole extends string> extends FormControl implements FieldSchemaTemplate<UserRole> {
+export class FormControlSchema<UserRole extends string> extends FormControl implements ControlSchemaTemplate<UserRole> {
 
   public readonly label: string = '';
   public readonly placeholder?: string = undefined;
@@ -64,7 +64,7 @@ export class FormFieldSchema<UserRole extends string> extends FormControl implem
   /**
    * @ Constructor
    */
-  constructor(_template: FieldSchemaTemplate<UserRole>, opts?: FormControlOptions) {
+  constructor(_template: ControlSchemaTemplate<UserRole>, opts?: FormControlOptions) {
     const { defaultValue = null, disabled = false, options, userRoles, ...template } = _template;
     super({ value: defaultValue, disabled }, opts);
 

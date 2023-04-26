@@ -1,7 +1,7 @@
 import { FormGroup } from '@angular/forms';
-import { AbstractControl, FormControl } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { Observable } from "rxjs";
-import { FormFieldSchema } from "./form-field-schema";
+import { FormControlSchema } from "./form-control-schema";
 import { FormGroupSchema } from "./form-group-schema";
 
 export enum FormSchemaFieldType {
@@ -22,8 +22,9 @@ export type ComparisonOperator = "==" | "!=" | "<" | ">" | "<=" | ">=";
 
 export type UseValueCondition = {
   /**
-   * Valore da assegnare al campo. E' possibile inserire direttamente il valore da assegnare al campo (in caso di stringa inserirla tra apici singoli).
-   * E' possibile inserire il percorso della proprietà di riferimento.
+   * Value to be assigned to the field.
+   * It is possible to insert the value directly (in case of a string, enclose it in single quotes).
+   * It is also possible to insert the reference property path.
    * @example
    * ```
    * value: 'path.to.field'
@@ -31,7 +32,7 @@ export type UseValueCondition = {
    */
   value: any,
   /**
-   * Condizioni che devono essere rispettate per l'assegnazione del valore impostato
+   * Conditions that must be met for the assigned value to be set
    * @example
    * ```
    * ```
@@ -48,12 +49,12 @@ export type UseValueCondition = {
 };
 
 /**
- * Le impostazioni dei permessi che definiscono quali ruoli hanno accesso in lettura o in scrittura
+ * The permission settings that define which roles have access for reading or writing.
  */
 export type FormSchemaPermissionSettings<T extends string> = {
-  /** Lista ruoli con permessi in lettura. Se la lista rimane vuota indica che non è richiesto alcun ruolo. */
+  /** List of roles with read permissions. If the list is empty, it means that no role is required.. */
   read: T[];
-  /** Lista ruoli con permessi in scrittura. Se la lista rimane vuota indica che non è richiesto alcun ruolo. */
+  /** List of roles with write permissions. If the list is empty, it means that no role is required. */
   write: T[];
 };
 
@@ -63,32 +64,34 @@ export type FormSchemaFieldOptions = {
 };
 
 export type FormSchemaValidators = {
-  /** Indica se il campo è obbligatorio */
+  /** Indicate whether the field is mandatory. */
   required?: boolean;
-  /** Numero minimo consentito. Viene preso in considerazione solo se il campo è di tipo 'number' o 'date'.
-   * E' possibile inserire il percorso della proprietà di riferimento.
+  /**
+   * Minimum allowed number. It is only taken into account if the field is of type 'number' or 'date'.
+   * It is possible to insert the path of the reference property.
    * @example
    * ```
    * min: 'path.to.field'
    * ```
-   * Dove 'field' deve essere di tipo 'number'.
-   * */
+   * Where 'field' must be of type 'number'.
+   */
   min?: number | string | Date,
-  /** Numero massimo consentito. Viene preso in considerazione solo se il campo è di tipo 'number' o 'date'.
-   * E' possibile inserire il percorso della proprietà di riferimento.
+  /**
+   * Maximum allowed number. It is only taken into account if the field is of type 'number' or 'date'.
+   * It is possible to insert the path of the reference property.
    * @example
    * ```
    * min: 'path.to.field'
    * ```
-   * Dove 'field' deve essere dello stesso tipo del campo.
-   * */
+   * Where 'field' must be of the same type as the field.
+   */
   max?: number | string | Date,
 };
 
 export type FormSchemaConditions = {
   /**
-   * Visibilità condizionale.
-   * I campi a cui si fa riferimento devono essere presenti all'interno della proprieta *dependencies*.
+   * Conditional visibility.
+   * The referenced fields must exist within the *dependencies* property.
    * @example
    * ```
    * ```
@@ -103,8 +106,8 @@ export type FormSchemaConditions = {
    */
   showIf?: string;
   /**
-   * Validazione campo opzionale.
-   * I campi a cui si fa riferimento devono essere presenti all'interno della proprieta *dependencies*.
+   * Conditional required.
+   * The referenced fields must exist within the *dependencies* property.
    * @example
    * ```
    * "path.to.field=='Foo'"
@@ -118,7 +121,8 @@ export type FormSchemaConditions = {
    */
   requiredIf?: string;
   /**
-   * Imposta stato di sola lettura condizionale.
+   * Conditional readonly.
+   * The referenced fields must exist within the *dependencies* property.
    * @example
    * ```
    * "path.to.field=='Foo'"
@@ -132,71 +136,72 @@ export type FormSchemaConditions = {
    */
   readonlyIf?: string;
   /**
-   * Imposta il valore del campo in modo condizionale.
-   * Accetta una lista di condizioni
+   * Set the value of the field conditionally.
+   * Accept a list of conditions
    */
   useValuesIf?: UseValueCondition | UseValueCondition[];
 };
 
 /**
- * Il template che definisce lo schema del campo, compreso di validazione, impostazioni di visualizzazione, ecc.
+ * The template that defines the schema of the field, including validation, display settings, etc.
  */
-export type FieldSchemaTemplate<T extends string> = {
-  /** Etichetta del campo */
+export type ControlSchemaTemplate<UserRole extends string = any> = {
+  /** Field label */
   label: string;
-  /** Testo placeholder del campo */
+  /** Field placeholder */
   placeholder?: string;
-  /** Suggerimento del campo */
+  /** field hint */
   hint?: string;
-  /** Chiave univoca del campo all'interno del form */
+  /** Unique key of the field within the form */
   key: string;
-  /** Tipo di campo, come definito nell'enumerazione `FormSchemaFieldType` */
+  /** Field type, as defined in the `FormSchemaFieldType` enumeration */
   type: FormSchemaFieldType;
-  /** Valore iniziale */
+  /** Default value */
   defaultValue: string | number | boolean | null;
-  /** Indica se il campo è in sola lettura */
+  /** Indicates whether the field is read-only */
   readonly?: boolean;
-  /** Campo disabilitato e non validabile */
+  /** Indicates if the field is disabled. When it is disabled it is not validated. */
   disabled?: boolean;
-  /** Indica se il campo deve essere disabilitato quando non è visibile. Il valore di default è 'true' */
+  /** Indicates whether the field should be disabled when not visible. Default value is 'true' */
   disableWhenNotVisible?: boolean;
-  /** Indica la grandezza del campo, come definito nell'enumerazione `FormSchemaFieldSize` */
+  /** Indicates the size of the field, as defined in the `FormSchemaFieldSize` enumeration. You can use this field to value the style class of the component. */
   size?: FormSchemaFieldSize;
-  /** Indica la lunghezza massima della stringa. Valido solo per i campi di tipo `TEXT` e `TEXTAREA` */
+  /** Indicates the maximum length of the string. Only valid for `TEXT` and `TEXTAREA` fields */
   maxLength?: number;
-  /** Indica se il campo dev'essere visibile o meno */
+  /** Indicates whether the field should be visible or not */
   visible?: boolean;
-  /** Indica il gruppo di appartenenza del campo */
+  /** Name of the group the field belongs to */
   group?: string;
-  /** Opzioni da usare in caso di select-box */
+  /** Options to use in case of select-box */
   options?: FormSchemaFieldOptions[] | Observable<FormSchemaFieldOptions[]>;
-  /** Indica l'ordine di visualizzazione del campo all'interno del proprio gruppo */
+  /** Indicates the display order of the field within its group */
   order?: number;
-  /** Prefisso campo */
+  /** Field prefix */
   prefix?: string;
-  /** Chiave o percorso dei campi che influenzano il comportamento di questo campo.
+  /**
+   * Key or path to the fields that affect the behavior of this field.
    * @example
-   * Esempio di dipendenze
+   * Example of dependencies
    * ```
    * ['path.to.field', 'anotherField']
    * ```
   */
   dependencies?: string[];
-  /** Suffisso campo */
+  /** Field suffix */
   suffix?: string;
-  /** Impostazioni permessi */
-  permissions?: FormSchemaPermissionSettings<T>;
-  /** Permessi utente corrente */
-  userRoles?: T[];
-  /** Lista di valdatori */
+  /** Permission settings */
+  permissions?: FormSchemaPermissionSettings<UserRole>;
+  /** Current user permissions */
+  userRoles?: UserRole[];
+  /** Validators */
   validators?: FormSchemaValidators;
-  /** Elenco condizioni opzionali */
+  /** Optional condition list */
   conditions?: FormSchemaConditions
 }
 
-export type FormGroupSchemaTemplate<UserRole extends string> = {
+export type FormGroupSchemaTemplate<UserRole extends string = any> = {
   conditions?: {},
   fields:
-  | FormFieldSchema<UserRole>[]
-  | { [key: string]: FormControl<any> | FormGroup<any> | FormFieldSchema<UserRole> | FormGroupSchema<UserRole> }
+  | FormControlSchema<UserRole>[]
+  | { [key: string]: FormControl<any> | FormGroup<any> | FormControlSchema<UserRole> | FormGroupSchema<UserRole> | ControlSchemaTemplate<UserRole> }
 };

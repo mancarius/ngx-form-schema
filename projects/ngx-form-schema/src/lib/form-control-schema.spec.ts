@@ -1,9 +1,9 @@
 import { FormControl, FormGroup } from "@angular/forms";
 import { BehaviorSubject } from "rxjs";
-import { FormFieldSchema } from "./form-field-schema";
+import { FormControlSchema } from "./form-control-schema";
 import { FormSchemaFieldOptions, FormSchemaFieldType } from "./types";
 
-describe('FormFieldSchema', () => {
+describe('FormControlSchema', () => {
 
   describe('setParent', () => {
 
@@ -12,9 +12,9 @@ describe('FormFieldSchema', () => {
         testField: new FormControl('')
       });
       spyOn(mockFormGroup.valueChanges, 'subscribe').and.callThrough();
-      spyOn(FormFieldSchema.prototype, 'checkConditionsAndUpdateState');
+      spyOn(FormControlSchema.prototype, 'checkConditionsAndUpdateState');
 
-      const fieldSchema = new FormFieldSchema({
+      const fieldSchema = new FormControlSchema({
         defaultValue: '',
         key: 'testField',
         label: 'Test Field',
@@ -27,7 +27,7 @@ describe('FormFieldSchema', () => {
       fieldSchema.setParent(mockFormGroup);
 
       expect(mockFormGroup.valueChanges.subscribe).toHaveBeenCalled();
-      expect(FormFieldSchema.prototype.checkConditionsAndUpdateState).toHaveBeenCalled();
+      expect(FormControlSchema.prototype.checkConditionsAndUpdateState).toHaveBeenCalled();
     });
 
   });
@@ -35,7 +35,7 @@ describe('FormFieldSchema', () => {
   describe('setUserRoles', () => {
 
     it('should set _userRoles property to provided roles', () => {
-      const fieldSchema = new FormFieldSchema({
+      const fieldSchema = new FormControlSchema({
         defaultValue: '',
         key: 'testField',
         label: 'Test Field',
@@ -56,7 +56,7 @@ describe('FormFieldSchema', () => {
   describe('setOptions', () => {
 
     it('should set _options$ property to provided options list', () => {
-      const fieldSchema = new FormFieldSchema({
+      const fieldSchema = new FormControlSchema({
         defaultValue: '',
         key: 'testField',
         label: 'Test Field',
@@ -80,7 +80,7 @@ describe('FormFieldSchema', () => {
     });
 
     it('should subscribe to provided options observable and update _options$ property accordingly', () => {
-      const fieldSchema = new FormFieldSchema({
+      const fieldSchema = new FormControlSchema({
         defaultValue: '',
         key: 'testField',
         label: 'Test Field',

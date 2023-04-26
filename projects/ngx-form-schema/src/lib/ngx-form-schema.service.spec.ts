@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { NgxFormSchemaService } from './ngx-form-schema.service';
+import { NgxFormSchemaBuilder } from './ngx-form-schema.service';
 
 describe('NgxFormSchemaService', () => {
-  let service: NgxFormSchemaService;
+  let service: NgxFormSchemaBuilder;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(NgxFormSchemaService);
+    service = TestBed.inject(NgxFormSchemaBuilder);
   });
 
   it('should be created', () => {
