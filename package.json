@@ -11,7 +11,7 @@
     "lint": "ng lint",
     "get_version": "cat ./projects/schema-form/package.json | grep version  | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]'"
   },
-  "private": true,
+  "private": false,
   "dependencies": {
     "@angular/animations": "^15.0.0",
     "@angular/common": "^15.0.0",
