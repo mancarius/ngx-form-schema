@@ -1,6 +1,6 @@
 import { FormControl } from '@angular/forms';
 import { AbstractControl, AbstractControlOptions, FormGroup, ValidatorFn } from '@angular/forms';
-import { FormFieldSchema } from './form-field-schema';
+import { FormControlSchema } from './form-control-schema';
 import { FormGroupSchemaTemplate } from './types';
 
 /**
@@ -9,7 +9,7 @@ import { FormGroupSchemaTemplate } from './types';
  */
 export class FormGroupSchema<T extends string> extends FormGroup {
   public override controls: {
-    [key: string]: FormFieldSchema<T> | FormGroupSchema<T> | AbstractControl
+    [key: string]: FormControlSchema<T> | FormGroupSchema<T> | AbstractControl
   } = {};
 
   private _userRoles: T[] = [];
@@ -17,7 +17,7 @@ export class FormGroupSchema<T extends string> extends FormGroup {
   /**
    * Costruttore della classe.
    *
-   * @param template Oggetto o array di oggetti "FormFieldSchema" o "FormGroupSchema"
+   * @param template Oggetto o array di oggetti "FormControlSchema" o "FormGroupSchema"
    * che rappresentano i campi all'interno del gruppo.
    *
    * @param validatorOrOpts Opzioni di validazione per il gruppo.
@@ -30,7 +30,7 @@ export class FormGroupSchema<T extends string> extends FormGroup {
       fields.reduce((acc, curr) => {
         acc[curr.key] = curr;
         return acc;
-      }, {} as { [key: string]: FormFieldSchema<T> | FormGroupSchema<T> | FormControl | FormGroup }) :
+      }, {} as { [key: string]: FormControlSchema<T> | FormGroupSchema<T> | FormControl | FormGroup }) :
       fields;
 
     super(controls, validatorOrOpts);
@@ -40,7 +40,7 @@ export class FormGroupSchema<T extends string> extends FormGroup {
     }
   }
 
-  public override get<P extends FormGroupSchema<T> | FormFieldSchema<T>>(path: any): P { return super.get(path) as P; }
+  public override get<P extends FormGroupSchema<T> | FormControlSchema<T>>(path: any): P { return super.get(path) as P; }
 
   /**
    * Imposta i ruoli dell'utente per tutti i campi all'interno del gruppo.
@@ -56,7 +56,7 @@ export class FormGroupSchema<T extends string> extends FormGroup {
   public override addControl(name: string, control: AbstractControl<any, any>, options?: {
     emitEvent?: boolean;
   }): void {
-    if (control instanceof FormFieldSchema || control instanceof FormGroupSchema) {
+    if (control instanceof FormControlSchema || control instanceof FormGroupSchema) {
       control.setUserRoles(this._userRoles);
     }
 
@@ -69,7 +69,7 @@ export class FormGroupSchema<T extends string> extends FormGroup {
   private _updateChildrenUserRoles() {
     // Per ogni controllo all'interno di questo gruppo, aggiorno i ruoli.
     this._forEachControl(this.controls, (control: AbstractControl) => {
-      if (control instanceof FormFieldSchema || control instanceof FormGroupSchema) {
+      if (control instanceof FormControlSchema || control instanceof FormGroupSchema) {
         control.setUserRoles(this._userRoles);
       }
     });
@@ -111,7 +111,7 @@ export class FormGroupSchema<T extends string> extends FormGroup {
       if (isGroup || isArray) {
         formGroup.addControl(value.key, FormGroupSchema.fromJSON<T>(value, userRoles));
       } else if (isObj) {
-        formGroup.addControl(value.key, new FormFieldSchema<T>(value));
+        formGroup.addControl(value.key, new FormControlSchema<T>(value));
       }
     });
 
