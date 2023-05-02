@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlSchemaTemplate, FormControlSchema, FormSchemaFieldType, CONTROL_SELF_REF } from 'ngx-form-schema';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -22,10 +22,10 @@ const FORM_CONTROL_SCHEMA: ControlSchemaTemplate = {
   templateUrl: './single-control-example.component.html',
   styleUrls: ['./single-control-example.component.css']
 })
-export class SingleControlExampleComponent {
+export class SingleControlExampleComponent implements OnInit {
 
   fieldTypes = FormSchemaFieldType;
-  control = new FormControlSchema(FORM_CONTROL_SCHEMA);
+  control!: FormControlSchema;
 
   get fieldTypeList() {
     return Object.values(FormSchemaFieldType);
@@ -35,7 +35,15 @@ export class SingleControlExampleComponent {
     return typeof this.control.value;
   }
 
+  ngOnInit(): void {
+    this.reset();
+  }
+
   protected setFieldType(type: any): void {
     this.control.setFieldType(type);
+  }
+
+  protected reset(): void {
+    this.control = new FormControlSchema(FORM_CONTROL_SCHEMA);
   }
 }
