@@ -13,7 +13,7 @@
     "sourceMap": true,
     "paths": {
       "ngx-form-schema": [
-        "dist/ngx-form-schema"
+        "projects/ngx-form-schema/src/public-api.ts"
       ]
     },
     "declaration": false,
