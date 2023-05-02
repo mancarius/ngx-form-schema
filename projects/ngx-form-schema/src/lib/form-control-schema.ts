@@ -1,9 +1,10 @@
-import { FormArray, FormControl, FormControlOptions, FormGroup } from "@angular/forms";
-import { BehaviorSubject, shareReplay, Observable, filter, startWith, distinctUntilChanged, takeUntil, Subject } from "rxjs";
+import { AbstractControl, FormArray, FormControl, FormControlOptions, FormGroup } from "@angular/forms";
+import { BehaviorSubject, shareReplay, Observable, filter, startWith, distinctUntilChanged, takeUntil, Subject, switchMap, tap } from "rxjs";
 import { ControlSchemaTemplate, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "./types";
 import { compile, evalExpr } from 'jse-eval';
 import { get } from "./helpers";
 import { FormGroupSchema } from "./form-group-schema";
+import { CONTROL_SELF_REF } from "./constants";
 
 type TemplateKeys = keyof ControlSchemaTemplate<string>;
 
@@ -26,7 +27,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
   public readonly placeholder?: string = undefined;
   public readonly hint?: string = undefined;
   public readonly key: string = '';
-  public readonly type: FormSchemaFieldType = FormSchemaFieldType.TEXT;
+  public type: FormSchemaFieldType = FormSchemaFieldType.TEXT;
   public readonly readonly: boolean = false;
   public readonly disableWhenNotVisible: boolean = true;
   public readonly size: FormSchemaFieldSize = 'sm';
@@ -58,7 +59,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
   private _visible$: BehaviorSubject<boolean>;
   private _disabled$: BehaviorSubject<boolean>;
   private _options$ = new BehaviorSubject<FormSchemaFieldOptions[]>([]);
-  private _parent$ = new Subject<FormGroupSchema<UserRole> | FormGroup | FormArray>();
+  private _root$ = new Subject<FormControlSchema<UserRole> | FormGroupSchema<UserRole> | AbstractControl>();
   private _userRoles: UserRole[] = [];
 
   /**
@@ -117,27 +118,33 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
         else this.disable({ emitEvent: false });
         this.updateValueAndValidity();
       });
+
+    this._root$.pipe(
+      startWith(this.root),
+      switchMap(root => root.valueChanges)
+    ).subscribe(() => {
+      this.checkConditionsAndUpdateState();
+    });
   }
 
   /**
    * Sets the parent of the control
    * @param parent The new parent.
    */
-  public override setParent(parent: FormGroupSchema<UserRole> | FormGroup | FormArray) {
-    super.setParent(parent as FormGroup);
+  public override setParent(parent: FormControlSchema<UserRole> | FormGroup | FormArray | null): void;
+  public override setParent(parent: FormGroupSchema<UserRole> | FormGroup | FormArray | null): void {
+    super.setParent(parent as unknown as FormGroup);
 
-    this._parent$.next(parent);
+    this._root$.next(this.root);
+  }
 
-    /** Risottoscrive root */
-    this.root.valueChanges
-      .pipe(
-        startWith(this.root.getRawValue()),
-        /** Rimuove sottoscrizione precedente */
-        takeUntil(this._parent$)
-      )
-      .subscribe(formValue => {
-        this.checkConditionsAndUpdateState(formValue);
-      });
+  /**
+   * Sets the field type
+   * @param type
+   */
+  public setFieldType(type: FormSchemaFieldType): void {
+    this.type = type;
+    this.checkConditionsAndUpdateState();
   }
 
   /**
@@ -146,7 +153,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    */
   public setUserRoles(roles: UserRole[]): void {
     this._userRoles = Array.isArray(roles) ? [...roles] : [];
-    this.checkConditionsAndUpdateState(this.root.getRawValue());
+    this.checkConditionsAndUpdateState();
   }
 
   /**
@@ -165,8 +172,14 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    * Verifica le condizioni e aggiorna lo stato dello schema
    * @param dataSrc
    */
-  public checkConditionsAndUpdateState(dataSrc: Record<string, any>) {
-    const filterDepsSrc = this._filterDepsSrc(dataSrc);
+  public checkConditionsAndUpdateState(dataSrc?: Record<string, any>) {
+    const src = typeof dataSrc === 'object'
+      ? dataSrc
+      : !!this.root && typeof this.root.getRawValue() === 'object'
+        ? this.root.getRawValue()
+        : null;
+
+    const filterDepsSrc = this._filterDepsSrc(src);
 
     this.refreshReadonly(filterDepsSrc);
     this.refreshVisibility(filterDepsSrc);
@@ -180,7 +193,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    *
    * @param {Record<string, any>} dataSrc - La sorgente dati da utilizzare durante l'elaborazione delle condizioni.
    */
-  public refreshValidity(dataSrc: Record<string, any>) {
+  public refreshValidity(dataSrc: Record<string, any> | null) {
     if (this.disabled) return;
 
     const catchedError =
@@ -196,7 +209,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    *
    * @param {Record<string, any>} dataSrc - La sorgente dati da utilizzare durante l'elaborazione delle condizioni.
    */
-  public refreshRequired(dataSrc: Record<string, any>): void {
+  public refreshRequired(dataSrc: Record<string, any> | null): void {
     if (this._noDependencies() || this.disabled) this._required$.next(this.validators.required ?? false);
     else {
       const isRequired = this._evaluateConditions(this.conditions.requiredIf ?? '', dataSrc, this.validators.required);
@@ -212,7 +225,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    *
    * @param {Record<string, any>} dataSrc - La sorgente dati da utilizzare durante l'elaborazione delle condizioni.
    */
-  public refreshReadonly(dataSrc: Record<string, any>): void {
+  public refreshReadonly(dataSrc: Record<string, any> | null): void {
     const canWrite = this._userHasWritePerms();
 
     if (!canWrite) {
@@ -230,7 +243,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    *
    * @param {Record<string, any>} dataSrc - La sorgente dati da utilizzare durante l'elaborazione delle condizioni.
    */
-  public refreshVisibility(dataSrc: Record<string, any>): void {
+  public refreshVisibility(dataSrc: Record<string, any> | null): void {
     const canRead = this._userHasReadPerms();
 
     if (!canRead) this._visible$.next(false);
@@ -247,7 +260,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    *
    * @param {Record<string, any>} dataSrc - La sorgente dati da utilizzare durante l'elaborazione delle condizioni.
    */
-  public refreshValue(dataSrc: Record<string, any>): void {
+  public refreshValue(dataSrc: Record<string, any> | null): void {
     if (this._noDependencies()) return;
 
     const conditions = this.conditions?.useValuesIf;
@@ -261,7 +274,7 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
     if (nextValue === undefined) return;
 
     // in caso di stringa viene valutata come espressione per individuare un eventuale path.
-    if (typeof nextValue === 'string') {
+    if (typeof nextValue === 'string' && !!dataSrc) {
       nextValue = evalExpr(nextValue, dataSrc);
     }
 
@@ -318,35 +331,54 @@ export class FormControlSchema<UserRole extends string> extends FormControl impl
    * @param fallback Valore da ritornare in assenza di condizioni
    * @returns {boolean}
    */
-  private _evaluateConditions(expression: string, dataSrc: Record<string, any>, fallback: boolean = true): boolean {
+  private _evaluateConditions(expression: string, dataSrc: Record<string, any> | null, fallback: boolean = true): boolean {
     if (!expression || typeof expression !== 'string') return fallback;
 
-    return evalExpr(expression, dataSrc) as boolean;
+    const sanitizedExp = this._replaceSelfRefWithValue(expression, this.getRawValue());
+
+    return evalExpr(sanitizedExp, dataSrc || undefined) as boolean;
+  }
+
+  /**
+   * Replaces occurrences of CONTROL_SELF_REF in the given expression with the given value.
+   * @private
+   * @param {string} expression - The expression to replace self references in.
+   * @param {any} value - The value to replace self references with.
+   * @returns {string} The expression with self references replaced with the given value.
+   */
+  private _replaceSelfRefWithValue(expression: string, value: any): string {
+    const sanitizedValue = typeof value === 'string' ? `'${value}'` : value;
+    const regex = new RegExp(`(?<=\\b)(?:${CONTROL_SELF_REF})(?![\\w'"])(?=[^'"]*)`, 'gm');
+    return expression.replace(regex, sanitizedValue);
   }
 
   /** Filtra il sorgente in base alle dipendenze dichiarate */
-  private _filterDepsSrc(dataSrc: Record<string, any>): { [key: string]: any } {
-    return this.dependencies.reduce((acc, curDep) => ({ ...acc, [curDep]: get(dataSrc, curDep, null) }), {})
+  private _filterDepsSrc(dataSrc: Record<string, any>): { [key: string]: any } | null {
+    return !!dataSrc ? this.dependencies.reduce((acc, curDep) => ({
+      ...acc, ...(() =>
+        curDep && curDep !== CONTROL_SELF_REF ? ({ [curDep]: get(dataSrc, curDep, null) }) : {}
+      )()
+    }), {}) : null
   }
 
   /**
    * Metodo privato per il controllo della validità delle date.
    */
-  private _validateDate(dataSrc: { [key: string]: any }):
+  private _validateDate(dataSrc: { [key: string]: any } | null):
     | { min: { min: number | Date; actual: number | Date; }; }
     | { max: { max: number | Date; actual: number | Date; }; }
     | null {
-    return this._validateMin({ dataSrc }) || this._validateMax(dataSrc);
+    return dataSrc === null ? null : this._validateMin(dataSrc) || this._validateMax(dataSrc);
   }
 
   /**
    * Metodo privato per il controllo della validità di valori numerici.
    */
-  private _validateNumber(dataSrc: { [key: string]: any }):
+  private _validateNumber(dataSrc: { [key: string]: any } | null):
     | { max: { max: number | Date; actual: any; }; }
     | { min: { min: number | Date; actual: any; }; }
     | null {
-    return this._validateMin({ dataSrc }) || this._validateMax(dataSrc);
+    return dataSrc === null ? null : this._validateMin(dataSrc) || this._validateMax(dataSrc);
   }
 
   /**

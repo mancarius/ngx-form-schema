@@ -13,7 +13,8 @@ export enum FormSchemaFieldType {
   TELEPHONE = 'tel',
   DATE = 'date',
   TIME = 'time',
-  DATETIME = 'datetime'
+  DATETIME = 'datetime',
+  PASSWORD = 'password'
 }
 
 export type FormSchemaFieldSize = 'sm' | 'md' | 'lg' | 'full';
