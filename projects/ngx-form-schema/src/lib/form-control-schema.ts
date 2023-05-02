@@ -21,7 +21,7 @@ type Writeable<T> = { -readonly [P in keyof T]-?: T[P] };
  *
  * @template UserRole il tipo di ruolo utente associato al campo
  */
-export class FormControlSchema<UserRole extends string> extends FormControl implements ControlSchemaTemplate<UserRole> {
+export class FormControlSchema<UserRole extends string = string> extends FormControl implements ControlSchemaTemplate<UserRole> {
 
   public readonly label: string = '';
   public readonly placeholder?: string = undefined;

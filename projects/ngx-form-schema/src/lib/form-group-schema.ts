@@ -7,7 +7,7 @@ import { FormGroupSchemaTemplate } from './types';
  * Estende la classe FormGroup di Angular con la possibilità di impostare i ruoli dell'utente
  * per tutti i campi all'interno del gruppo.
  */
-export class FormGroupSchema<T extends string> extends FormGroup {
+export class FormGroupSchema<T extends string = string> extends FormGroup {
   public override controls: {
     [key: string]: FormControlSchema<T> | FormGroupSchema<T> | AbstractControl
   } = {};
