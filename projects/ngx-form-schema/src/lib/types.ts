@@ -1,5 +1,3 @@
-import { FormGroup } from '@angular/forms';
-import { FormControl } from '@angular/forms';
 import { Observable } from "rxjs";
 import { FormControlSchema } from "./form-control-schema";
 import { FormGroupSchema } from "./form-group-schema";
@@ -202,7 +200,14 @@ export type ControlSchemaTemplate<UserRole extends string = any> = {
 
 export type GroupSchemaTemplate<UserRole extends string = any> = {
   conditions?: {},
+  key?: string | number,
   fields:
   | FormControlSchema<UserRole>[]
-  | { [key: string]: FormControl<any> | FormGroup<any> | FormControlSchema<UserRole> | FormGroupSchema<UserRole> | ControlSchemaTemplate<UserRole> }
+  | {
+    [key: string]:
+    | FormControlSchema<UserRole>
+    | FormGroupSchema<UserRole>
+    | ControlSchemaTemplate<UserRole>
+    | GroupSchemaTemplate<UserRole>
+  }
 };

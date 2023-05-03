@@ -1,5 +1,5 @@
 import { AbstractControl, FormArray, FormControl, FormControlOptions, FormGroup } from "@angular/forms";
-import { BehaviorSubject, shareReplay, Observable, filter, startWith, distinctUntilChanged, takeUntil, Subject, switchMap, tap } from "rxjs";
+import { BehaviorSubject, shareReplay, Observable, filter, startWith, distinctUntilChanged, Subject, switchMap } from "rxjs";
 import { ControlSchemaTemplate, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "./types";
 import { compile, evalExpr } from 'jse-eval';
 import { get } from "./helpers";
@@ -334,22 +334,35 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
   private _evaluateConditions(expression: string, dataSrc: Record<string, any> | null, fallback: boolean = true): boolean {
     if (!expression || typeof expression !== 'string') return fallback;
 
-    const sanitizedExp = this._replaceSelfRefWithValue(expression, this.getRawValue());
+    const sanitizedExp = this.dependencies.reduce((exp, dep) => {
+      if (dep === CONTROL_SELF_REF) {
+        return this._replaceWithValue(exp, dep, this.getRawValue());
+      } else {
+        return !!dataSrc
+          ? this._replaceWithValue(exp, dep, dataSrc[dep])
+          : expression
+      }
+    },
+      expression);
 
-    // TODO: gestire eccezione
-    return evalExpr(sanitizedExp, dataSrc || undefined) as boolean;
+    try {
+      return evalExpr(sanitizedExp) as boolean;
+    } catch (e) {
+      return fallback;
+    }
   }
 
   /**
-   * Replaces occurrences of CONTROL_SELF_REF in the given expression with the given value.
+   * Replaces all occurrences in the given expression with the given value.
    * @private
    * @param {string} expression - The expression to replace self references in.
+   * @param {string} target
    * @param {any} value - The value to replace self references with.
    * @returns {string} The expression with self references replaced with the given value.
    */
-  private _replaceSelfRefWithValue(expression: string, value: any): string {
+  private _replaceWithValue(expression: string, target: string, value: any): string {
     const sanitizedValue = typeof value === 'string' ? `'${value}'` : value;
-    const regex = new RegExp(`(?<=\\b)(?:${CONTROL_SELF_REF})(?![\\w'"])(?=[^'"]*)`, 'gm');
+    const regex = new RegExp(`(?<=\\b)(?:${target})(?![\\w'"])(?=[^'"]*)`, 'gm');
     return expression.replace(regex, sanitizedValue);
   }
 
