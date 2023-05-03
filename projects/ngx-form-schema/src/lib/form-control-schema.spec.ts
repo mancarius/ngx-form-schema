@@ -5,29 +5,42 @@ import { FormSchemaFieldOptions, FormSchemaFieldType } from "./types";
 
 describe('FormControlSchema', () => {
 
+  it('should call checkConditionsAndUpdateState on root value changes', () => {
+    const fieldSchema = new FormControlSchema({
+      defaultValue: '',
+      key: 'foo',
+      label: 'Foo',
+      type: FormSchemaFieldType.SELECT
+    });
+    const mockFormGroup = new FormGroup({
+      foo: fieldSchema,
+      bar: new FormControl('')
+    });
+    spyOn(fieldSchema, 'checkConditionsAndUpdateState').and.stub();
+
+    expect(mockFormGroup.get('foo')).toBeInstanceOf(FormControlSchema);
+
+    mockFormGroup.get('bar')?.setValue('test');
+
+    expect(fieldSchema.checkConditionsAndUpdateState).toHaveBeenCalledTimes(1);
+  });
+
   describe('setParent', () => {
 
-    it('should subscribe to value changes of the parent form group and call checkConditionsAndUpdateState method', () => {
-      const mockFormGroup = new FormGroup({
-        testField: new FormControl('')
-      });
-      spyOn(mockFormGroup.valueChanges, 'subscribe').and.callThrough();
-      spyOn(FormControlSchema.prototype, 'checkConditionsAndUpdateState');
-
+    it('should call FormControlSchema#_root$.next', () => {
       const fieldSchema = new FormControlSchema({
         defaultValue: '',
         key: 'testField',
         label: 'Test Field',
-        validators: {
-          required: true
-        },
         type: FormSchemaFieldType.SELECT
       });
+      spyOn(fieldSchema['_root$'], 'next').and.stub();
+      spyOn(fieldSchema, 'setParent').and.callThrough();
 
-      fieldSchema.setParent(mockFormGroup);
+      const mockFormGroup = new FormGroup({ testField: fieldSchema });
 
-      expect(mockFormGroup.valueChanges.subscribe).toHaveBeenCalled();
-      expect(FormControlSchema.prototype.checkConditionsAndUpdateState).toHaveBeenCalled();
+      expect(fieldSchema.setParent).toHaveBeenCalledTimes(1);
+      expect(fieldSchema['_root$'].next).toHaveBeenCalledTimes(1);
     });
 
   });

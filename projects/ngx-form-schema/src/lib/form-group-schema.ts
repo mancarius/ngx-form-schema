@@ -1,7 +1,7 @@
 import { FormControl } from '@angular/forms';
 import { AbstractControl, AbstractControlOptions, FormGroup, ValidatorFn } from '@angular/forms';
 import { FormControlSchema } from './form-control-schema';
-import { FormGroupSchemaTemplate } from './types';
+import { GroupSchemaTemplate } from './types';
 
 /**
  * Estende la classe FormGroup di Angular con la possibilità di impostare i ruoli dell'utente
@@ -22,7 +22,7 @@ export class FormGroupSchema<T extends string = string> extends FormGroup {
    *
    * @param validatorOrOpts Opzioni di validazione per il gruppo.
    */
-  constructor(template: FormGroupSchemaTemplate<T>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: T[] } | ValidatorFn[]) {
+  constructor(template: GroupSchemaTemplate<T>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: T[] } | ValidatorFn[]) {
     const { fields } = template;
     // Se "fields" è un array, lo converto in un oggetto con chiavi e valori.
     // In caso contrario, lascio "fields" così com'è.
@@ -61,6 +61,30 @@ export class FormGroupSchema<T extends string = string> extends FormGroup {
     }
 
     super.addControl(name, control, options);
+  }
+
+  public override setControl(name: string, control: AbstractControl<any, any>, options?: {
+    emitEvent?: boolean;
+  }): void {
+    super.setControl(name, control, options);
+
+    if (super.controls[name] instanceof FormControlSchema || super.controls[name] instanceof FormGroupSchema) {
+      // update value and validity by schema
+      this._userRoles.length > 0 && (super.controls[name] as FormControlSchema).setUserRoles(this._userRoles);
+      (super.controls[name] as FormControlSchema).checkConditionsAndUpdateState();
+    }
+  }
+
+  /**
+   * Verifica le condizioni e aggiorna lo stato dello schema
+   * @param dataSrc
+   */
+  public checkConditionsAndUpdateState(dataSrc?: Record<string, any>): void {
+    Object.values(this.controls).forEach(control => {
+      if (control instanceof FormControlSchema || control instanceof FormGroupSchema) {
+        control.checkConditionsAndUpdateState(dataSrc);
+      }
+    })
   }
 
   /**

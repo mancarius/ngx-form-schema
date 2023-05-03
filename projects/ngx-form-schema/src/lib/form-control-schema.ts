@@ -175,7 +175,7 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
   public checkConditionsAndUpdateState(dataSrc?: Record<string, any>) {
     const src = typeof dataSrc === 'object'
       ? dataSrc
-      : !!this.root && typeof this.root.getRawValue() === 'object'
+      : typeof this.root?.getRawValue() === 'object'
         ? this.root.getRawValue()
         : null;
 
@@ -336,6 +336,7 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
 
     const sanitizedExp = this._replaceSelfRefWithValue(expression, this.getRawValue());
 
+    // TODO: gestire eccezione
     return evalExpr(sanitizedExp, dataSrc || undefined) as boolean;
   }
 

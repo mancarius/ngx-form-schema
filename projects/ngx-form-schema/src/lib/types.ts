@@ -200,7 +200,7 @@ export type ControlSchemaTemplate<UserRole extends string = any> = {
   conditions?: FormSchemaConditions
 }
 
-export type FormGroupSchemaTemplate<UserRole extends string = any> = {
+export type GroupSchemaTemplate<UserRole extends string = any> = {
   conditions?: {},
   fields:
   | FormControlSchema<UserRole>[]
