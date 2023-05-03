@@ -7,7 +7,7 @@
     "build": "ng build",
     "build:lib": "ng build ngx-form-schema",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test --watch=false",
+    "test": "ng test",
     "lint": "ng lint",
     "get_version": "cat ./projects/schema-form/package.json | grep version  | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]'"
   },
@@ -45,6 +45,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
+    "ng-mocks": "^14.10.0",
     "ng-packagr": "^15.0.0",
     "typescript": "~4.8.2"
   }

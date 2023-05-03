@@ -12,6 +12,6 @@ jobs:
         with:
           node-version: 18.x
       - run: npm install
-      - run: npm run test
+      - run: npm run test -- --watch=false --browsers=ChromeHeadless
         env:
           CI: true
