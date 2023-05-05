@@ -1,7 +1,7 @@
 import { FormControl, FormGroup } from "@angular/forms";
 import { BehaviorSubject } from "rxjs";
 import { FormControlSchema } from "./form-control-schema";
-import { FormSchemaFieldOptions, FormSchemaFieldType } from "./types";
+import { FormSchemaFieldOptions, FormSchemaFieldType } from "../types";
 
 describe('FormControlSchema', () => {
 

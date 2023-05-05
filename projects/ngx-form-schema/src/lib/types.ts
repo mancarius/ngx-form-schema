@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
-import { FormControlSchema } from "./form-control-schema";
-import { FormGroupSchema } from "./form-group-schema";
+import { FormControlSchema } from "./models/form-control-schema";
+import { FormGroupSchema } from "./models/form-group-schema";
 
 export enum FormSchemaFieldType {
   TEXT = 'text',
@@ -11,8 +11,16 @@ export enum FormSchemaFieldType {
   TELEPHONE = 'tel',
   DATE = 'date',
   TIME = 'time',
-  DATETIME = 'datetime',
-  PASSWORD = 'password'
+  DATETIME = 'datetime-local',
+  PASSWORD = 'password',
+  WEEK = 'week',
+  MONTH = 'month',
+  URL = 'url',
+  RANGE = 'range',
+  RADIO = 'radio',
+  SEARCH = 'search',
+  EMAIL = 'email',
+  COLOR = 'color',
 }
 
 export type FormSchemaFieldSize = 'sm' | 'md' | 'lg' | 'full';
@@ -85,6 +93,9 @@ export type FormSchemaValidators = {
    * Where 'field' must be of the same type as the field.
    */
   max?: number | string | Date,
+
+  // TODO: implement validation by pattern
+  // pattern?: string
 };
 
 export type FormSchemaConditions = {
@@ -141,10 +152,16 @@ export type FormSchemaConditions = {
   useValuesIf?: UseValueCondition | UseValueCondition[];
 };
 
+type ControlSchemaValueType<TField extends FormSchemaFieldType> =
+  TField extends FormSchemaFieldType.NUMBER ? number :
+  TField extends FormSchemaFieldType.CHECKBOX ? boolean :
+  TField extends FormSchemaFieldType.SELECT ? string | number | boolean :
+  string;
+
 /**
  * The template that defines the schema of the field, including validation, display settings, etc.
  */
-export type ControlSchemaTemplate<UserRole extends string = any> = {
+export type ControlSchemaTemplateAbstract<UserRole extends string = string, T = any> = {
   /** Field label */
   label: string;
   /** Field placeholder */
@@ -156,7 +173,7 @@ export type ControlSchemaTemplate<UserRole extends string = any> = {
   /** Field type, as defined in the `FormSchemaFieldType` enumeration */
   type: FormSchemaFieldType;
   /** Default value */
-  defaultValue: string | number | boolean | null;
+  defaultValue: T;
   /** Indicates whether the field is read-only */
   readonly?: boolean;
   /** Indicates if the field is disabled. When it is disabled it is not validated. */
@@ -171,7 +188,7 @@ export type ControlSchemaTemplate<UserRole extends string = any> = {
   visible?: boolean;
   /** Name of the group the field belongs to */
   group?: string;
-  /** Options to use in case of select-box */
+  /** Options to use in case of select-box or radio */
   options?: FormSchemaFieldOptions[] | Observable<FormSchemaFieldOptions[]>;
   /** Indicates the display order of the field within its group */
   order?: number;
@@ -196,18 +213,25 @@ export type ControlSchemaTemplate<UserRole extends string = any> = {
   validators?: FormSchemaValidators;
   /** Optional condition list */
   conditions?: FormSchemaConditions
+  /** The HTMLElement properties */
+  props?: { [key: string]: any }
 }
 
-export type GroupSchemaTemplate<UserRole extends string = any> = {
+export type ControlSchemaTemplate<UserRole extends string = string, T = string | number | boolean> =
+  | ControlSchemaTemplateAbstract<UserRole, number> & { type: FormSchemaFieldType.NUMBER | FormSchemaFieldType.RANGE }
+  | ControlSchemaTemplateAbstract<UserRole, boolean> & { type: FormSchemaFieldType.CHECKBOX }
+  | ControlSchemaTemplateAbstract<UserRole, T> & { type: FormSchemaFieldType.SELECT | FormSchemaFieldType.RADIO }
+  | ControlSchemaTemplateAbstract<UserRole, string>;
+
+export type FormSchemaElement<T, R extends string = string> =
+  [T] extends [FormControlSchema<R>] ? FormControlSchema<R> :
+  [T] extends [FormGroupSchema<R, infer S>] ? FormGroupSchema<R, S> :
+  [T] extends [ControlSchemaTemplate<R>] ? ControlSchemaTemplate<R> :
+  [T] extends [GroupSchemaTemplate<R, infer T>] ? GroupSchemaTemplate<R, T> :
+  unknown;
+
+export type GroupSchemaTemplate<UserRole extends string = string, T extends { [K in keyof T]: FormSchemaElement<T, UserRole> } = any> = {
   conditions?: {},
-  key?: string | number,
-  fields:
-  | FormControlSchema<UserRole>[]
-  | {
-    [key: string]:
-    | FormControlSchema<UserRole>
-    | FormGroupSchema<UserRole>
-    | ControlSchemaTemplate<UserRole>
-    | GroupSchemaTemplate<UserRole>
-  }
+  key?: string,
+  fields: T
 };

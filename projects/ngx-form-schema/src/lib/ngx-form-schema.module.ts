@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { NgxFormSchemaBuilder } from './ngx-form-schema.service';
+import { NgxFormSchemaBuilder } from './services/ngx-form-schema-builder.service';
 
 
 @NgModule({

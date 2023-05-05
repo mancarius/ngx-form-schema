@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-
-import { NgxFormSchemaBuilder } from './ngx-form-schema.service';
+import { NgxFormSchemaBuilder } from './ngx-form-schema-builder.service';
 
 describe('NgxFormSchemaBuilder', () => {
   let service: NgxFormSchemaBuilder;

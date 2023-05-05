@@ -1,10 +1,10 @@
-import { AbstractControl, FormArray, FormControl, FormControlOptions, FormGroup } from "@angular/forms";
+import { AbstractControl, AsyncValidatorFn, FormArray, FormControl, FormControlOptions, FormGroup, ValidatorFn } from "@angular/forms";
 import { BehaviorSubject, shareReplay, Observable, filter, startWith, distinctUntilChanged, Subject, switchMap } from "rxjs";
-import { ControlSchemaTemplate, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "./types";
+import { ControlSchemaTemplate, ControlSchemaTemplateAbstract, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "../types";
 import { compile, evalExpr } from 'jse-eval';
-import { get } from "./helpers";
+import { get } from "../helpers";
 import { FormGroupSchema } from "./form-group-schema";
-import { CONTROL_SELF_REF } from "./constants";
+import { CONTROL_SELF_REF } from "../constants";
 
 type TemplateKeys = keyof ControlSchemaTemplate<string>;
 
@@ -21,7 +21,7 @@ type Writeable<T> = { -readonly [P in keyof T]-?: T[P] };
  *
  * @template UserRole il tipo di ruolo utente associato al campo
  */
-export class FormControlSchema<UserRole extends string = string> extends FormControl implements ControlSchemaTemplate<UserRole> {
+export class FormControlSchema<UserRole extends string = string> extends FormControl implements ControlSchemaTemplateAbstract<UserRole> {
 
   public readonly label: string = '';
   public readonly placeholder?: string = undefined;
@@ -65,9 +65,13 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
   /**
    * @ Constructor
    */
-  constructor(_template: ControlSchemaTemplate<UserRole>, opts?: FormControlOptions) {
+  constructor(
+    _template: ControlSchemaTemplate<UserRole>,
+    validatorOrOpts?: FormControlOptions & { userRoles?: UserRole[] } | ValidatorFn | ValidatorFn[] | null | undefined,
+    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null | undefined
+  ) {
     const { defaultValue = null, disabled = false, options, userRoles, ...template } = _template;
-    super({ value: defaultValue, disabled }, opts);
+    super({ value: defaultValue, disabled }, validatorOrOpts, asyncValidator);
 
     // Assengna template ricevuto all'istanza della classe
     (Object.keys(template) as (Partial<TemplateKeys>)[])

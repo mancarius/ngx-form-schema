@@ -1,19 +1,22 @@
 import { FormArray, FormControl } from '@angular/forms';
 import { AbstractControl, AbstractControlOptions, FormGroup, ValidatorFn } from '@angular/forms';
 import { FormControlSchema } from './form-control-schema';
-import { ControlSchemaTemplate, GroupSchemaTemplate } from './types';
+import { FormSchemaElement, GroupSchemaTemplate } from '../types';
 
 /**
  * Estende la classe FormGroup di Angular con la possibilità di impostare i ruoli dell'utente
  * per tutti i campi all'interno del gruppo.
  */
-export class FormGroupSchema<T extends string = string> extends FormGroup {
+export class FormGroupSchema<
+  UserRole extends string = string,
+  TControl extends { [K in keyof TControl]: FormSchemaElement<TControl, UserRole>; } = any,
+> extends FormGroup {
   public key: string | number | undefined = undefined;
   public override controls: {
-    [key: string]: FormControlSchema<T> | FormGroupSchema<T>
+    [key: string]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControl>
   } = {};
 
-  private _userRoles: T[] = [];
+  private _userRoles: UserRole[] = [];
 
   /**
    * Costruttore della classe.
@@ -23,7 +26,7 @@ export class FormGroupSchema<T extends string = string> extends FormGroup {
    *
    * @param validatorOrOpts Opzioni di validazione per il gruppo.
    */
-  constructor(template: GroupSchemaTemplate<T>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: T[] } | ValidatorFn[]) {
+  constructor(template: GroupSchemaTemplate<UserRole, TControl>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: UserRole[] } | ValidatorFn[]) {
     const { fields, key } = template;
     // Se "fields" è un array, lo converto in un oggetto con chiavi e valori.
     // In caso contrario, lascio "fields" così com'è.
@@ -31,7 +34,7 @@ export class FormGroupSchema<T extends string = string> extends FormGroup {
       fields.reduce((acc, curr) => {
         acc[curr.key] = curr;
         return acc;
-      }, {} as { [key: string]: FormControlSchema<T> | FormGroupSchema<T> }) :
+      }, {} as { [key: string]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControl> }) :
       fields;
 
     super(controls, validatorOrOpts);
@@ -43,14 +46,14 @@ export class FormGroupSchema<T extends string = string> extends FormGroup {
     }
   }
 
-  public override get<P extends FormGroupSchema<T> | FormControlSchema<T>>(path: any): P { return super.get(path) as P; }
+  public override get<P extends FormGroupSchema<UserRole, TControl> | FormControlSchema<UserRole>>(path: any): P { return super.get(path) as P; }
 
   /**
    * Imposta i ruoli dell'utente per tutti i campi all'interno del gruppo.
    *
    * @param roles Array contenente i ruoli dell'utente.
    */
-  public setUserRoles(roles: T[]) {
+  public setUserRoles(roles: UserRole[]) {
     this._userRoles = [...roles];
     // Aggiorno i ruoli di ogni controllo all'interno di questo gruppo.
     this._updateChildrenUserRoles();
@@ -119,42 +122,5 @@ export class FormGroupSchema<T extends string = string> extends FormGroup {
         fn(control);
       }
     });
-  }
-
-  /**
-   * Converte un oggetto JSON in un FormGroupSchema
-   *
-   * @param jsonObject L'oggetto JSON da convertire in FormGroupSchema.
-   * @returns Un FormGroupSchema che rappresenta l'oggetto JSON.
-   */
-  static fromJSON<T extends string>(jsonObject: GroupSchemaTemplate, userRoles?: T[]): FormGroupSchema<T> {
-    const { fields, conditions, key } = jsonObject;
-    const formGroup = new FormGroupSchema<T>({ key, fields: [], conditions }, { userRoles });
-
-    Object.entries(fields).forEach(([key, value]) => {
-      const isObj = typeof value === "object";
-      const isArray = isObj && Array.isArray(value);
-      const isControlSchema = isObj && !isArray && value.hasOwnProperty('key') && !value.hasOwnProperty('fields');
-      const isGroupSchema = isObj && !isArray && value.hasOwnProperty('fields');
-      const isFormGroup = value instanceof FormGroup;
-      const isFormArray = value instanceof FormArray;
-      const isGroupSchemaInstance = value instanceof FormGroupSchema;
-      const isFormControl = value instanceof FormControl;
-      const isControlSchemaInstance = value instanceof FormControlSchema;
-      const isFormSchemaInstance = isGroupSchemaInstance || isControlSchemaInstance;
-
-      if (isFormSchemaInstance) {
-          formGroup.addControl(key, value);
-      } else if (isObj) {
-        if (isGroupSchema) {
-          formGroup.addControl(key, FormGroupSchema.fromJSON<T>(value as GroupSchemaTemplate<T>, userRoles));
-        }
-        else if (isControlSchema) {
-          formGroup.addControl(key, new FormControlSchema<T>(value as ControlSchemaTemplate<T>));
-        }
-      }
-    });
-
-    return formGroup;
   }
 }
