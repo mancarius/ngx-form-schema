@@ -1,16 +1,14 @@
-import { AbstractControl, AbstractControlOptions, FormGroup, ValidatorFn } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, FormArray, ValidatorFn } from '@angular/forms';
 import { FormControlSchema } from './form-control-schema';
-import { FormSchemaElement, GroupSchemaControls } from '../types';
+import { ArraySchemaControls, FormSchemaElement, GroupSchemaControls } from '../types';
+import { FormGroupSchema } from 'ngx-form-schema';
 import { forEachControl } from '../helpers/forEachControl';
 
-/**
- * Estende la classe FormGroup di Angular con la possibilità di impostare i ruoli dell'utente
- * per tutti i campi all'interno del gruppo.
- */
-export class FormGroupSchema<
+
+export class FormArraySchema<
   UserRole extends string = string,
-  TControls extends Record<string, FormSchemaElement<any, UserRole>> = any,
-  > extends FormGroup<TControls> {
+  TControl extends FormSchemaElement<any, UserRole> = any,
+  > extends FormArray<TControl> {
   public key: string | number | undefined = undefined;
 
   private _userRoles: UserRole[] = [];
@@ -23,16 +21,11 @@ export class FormGroupSchema<
    *
    * @param validatorOrOpts Opzioni di validazione per il gruppo.
    */
-  constructor(schema: GroupSchemaControls<UserRole, TControls>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: UserRole[] } | ValidatorFn[]) {
+  constructor(schema: ArraySchemaControls<UserRole, TControl[]>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: UserRole[] } | ValidatorFn[]) {
     const { fields, key } = schema;
     // Se "fields" è un array, lo converto in un oggetto con chiavi e valori.
     // In caso contrario, lascio "fields" così com'è.
-    const controls: TControls = Array.isArray(fields) ?
-      fields.reduce((acc, curr) => {
-        acc[curr.key] = curr;
-        return acc;
-      }, {} as { [key: string]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControls> }) :
-      fields;
+    const controls: TControl[] = fields;
 
     super(controls, validatorOrOpts);
 
@@ -43,7 +36,7 @@ export class FormGroupSchema<
     }
   }
 
-  public override get<P extends FormGroupSchema<UserRole, TControls> | FormControlSchema<UserRole>>(path: any): P { return super.get(path) as P; }
+  public override get<P extends FormArraySchema<UserRole, TControl> | FormControlSchema<UserRole>>(path: any): P { return super.get(path) as P; }
 
   /**
    * Imposta i ruoli dell'utente per tutti i campi all'interno del gruppo.
@@ -56,26 +49,36 @@ export class FormGroupSchema<
     this._updateChildrenUserRoles();
   }
 
-  public override addControl<K extends string>(name: K, control: TControls[K], options?: {
+  public override insert(index: number, control: TControl, options?: {
     emitEvent?: boolean;
   }): void {
-    if (control instanceof FormControlSchema || control instanceof FormGroupSchema) {
+    if (control instanceof FormControlSchema || control instanceof FormArraySchema || control instanceof FormGroupSchema) {
       control.setUserRoles(this._userRoles);
     }
 
-    super.addControl(name, control, options);
+    super.insert(index, control, options);
   }
 
-  public override setControl<K extends string & keyof TControls>(name: K, control: TControls[K], options?: {
+  public override push(control: TControl, options?: {
     emitEvent?: boolean;
   }): void {
-    if (super.controls[name] instanceof FormControlSchema || super.controls[name] instanceof FormGroupSchema) {
-      // update value and validity by schema
-      this._userRoles.length > 0 && (super.controls[name] as FormControlSchema).setUserRoles(this._userRoles);
-      (super.controls[name] as FormControlSchema).checkConditionsAndUpdateState();
+    if (control instanceof FormControlSchema || control instanceof FormArraySchema || control instanceof FormGroupSchema) {
+      control.setUserRoles(this._userRoles);
     }
 
-    super.setControl(name, control, options);
+    super.push(control, options);
+  }
+
+  public override setControl(index: number, control: TControl, options?: {
+    emitEvent?: boolean;
+  }): void {
+    if (super.controls[index] instanceof FormControlSchema || super.controls[index] instanceof FormGroupSchema || super.controls[index] instanceof FormArraySchema) {
+      // update value and validity by schema
+      this._userRoles.length > 0 && (super.controls[index] as FormControlSchema).setUserRoles(this._userRoles);
+      (super.controls[index] as FormControlSchema).checkConditionsAndUpdateState();
+    }
+
+    super.setControl(index, control, options);
   }
 
   /**
@@ -84,7 +87,7 @@ export class FormGroupSchema<
    */
   public checkConditionsAndUpdateState(dataSrc?: Record<string, any>): void {
     Object.values(this.controls).forEach(control => {
-      if (control instanceof FormControlSchema || control instanceof FormGroupSchema) {
+      if (control instanceof FormControlSchema || control instanceof FormArraySchema || control instanceof FormGroupSchema) {
         control.checkConditionsAndUpdateState(dataSrc);
       }
     })
@@ -96,9 +99,11 @@ export class FormGroupSchema<
   private _updateChildrenUserRoles() {
     // Per ogni controllo all'interno di questo gruppo, aggiorno i ruoli.
     forEachControl(this.controls, (control: AbstractControl) => {
-      if (control instanceof FormControlSchema || control instanceof FormGroupSchema) {
+      if (control instanceof FormControlSchema || control instanceof FormGroupSchema || control instanceof FormArraySchema) {
         control.setUserRoles(this._userRoles);
       }
     });
   }
+
+
 }

@@ -409,7 +409,7 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
         return null;
       else {
         const minValue = typeof this.validators.min === 'string' ? compile(this.validators.min)(dataSrc) as number | Date : this.validators.min;
-        const isValid = this.value >= minValue;
+        const isValid = minValue !== undefined && minValue !== null && this.value >= minValue;
 
         return !isValid ? { min: { min: minValue, actual: this.value } } : null;
       }
@@ -427,8 +427,7 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
         return null;
       else {
         const maxValue = typeof this.validators.max === 'string' ? compile(this.validators.max)(dataSrc) as number | Date : this.validators.max;
-        const isValid = this.value <= maxValue;
-
+        const isValid = maxValue !== undefined && maxValue !== null && this.value <= maxValue;
         return !isValid ? { max: { max: maxValue, actual: this.value } } : null;
       }
     }

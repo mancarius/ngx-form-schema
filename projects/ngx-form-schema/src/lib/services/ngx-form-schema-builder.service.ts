@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { AbstractControlOptions, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 import { FormControlSchema } from '../models/form-control-schema';
 import { FormGroupSchema } from '../models/form-group-schema';
-import { ControlSchema, FormSchemaElement, GroupSchemaControls, GroupSchema } from '../types';
+import { ControlSchema, FormSchemaElement, GroupSchema, ArraySchema } from '../types';
+import { FormArraySchema } from '../models/form-array-schema';
 
 @Injectable({
   providedIn: 'root'
@@ -22,38 +23,27 @@ export class NgxFormSchemaBuilder {
   ): FormGroupSchema<UserRole, { [K in keyof T]: FormSchemaElement<T[K], UserRole> }> {
 
     const { fields, conditions } = schema;
-    const formGroup = new FormGroupSchema<UserRole>({ key: schema.key, fields: [], conditions }, options);
+    const formGroup = new FormGroupSchema<UserRole>({ key: schema.key, fields: {}, conditions }, options);
 
     Object.entries(fields).forEach(([key, value]) => {
-      const isObj = typeof value === "object";
-      const isArray = isObj && Array.isArray(value);
-      const isControlSchema = isObj && !isArray && value?.hasOwnProperty('key') && !value.hasOwnProperty('fields');
-      const isGroupSchema = isObj && !isArray && value?.hasOwnProperty('fields');
-      const isGroupSchemaInstance = value instanceof FormGroupSchema;
-      const isControlSchemaInstance = value instanceof FormControlSchema;
-      const isFormSchemaInstance = isGroupSchemaInstance || isControlSchemaInstance;
-
-      if (isFormSchemaInstance) {
-        formGroup.addControl(key, value);
-      } else if (isObj) {
-        if (isGroupSchema) {
-          const childOptions: { userRoles?: UserRole[]; } | undefined = !!options && typeof options === 'object' && options.hasOwnProperty('userRoles')
-            ? { userRoles: options.userRoles }
-            : undefined;
-
-          const newFormBuilder = this.useNonNullable
-            ? new NgxFormSchemaBuilder().nonNullable
-            : new NgxFormSchemaBuilder();
-
-          formGroup.addControl(key, newFormBuilder.group<UserRole>(value as GroupSchema<UserRole, T>, childOptions));
-        }
-        else if (isControlSchema) {
-          formGroup.addControl(key, new FormControlSchema<UserRole>(value as ControlSchema<UserRole>, { nonNullable: this.useNonNullable }));
-        }
-      }
+      formGroup.addControl(key, value instanceof AbstractControl ? value : this._createControl(value, options));
     });
 
     return formGroup;
+  }
+
+  public array<UserRole extends string = string>(
+    schema: ArraySchema<UserRole>,
+    options?: (AbstractControlOptions | { [key: string]: any }) & { userRoles?: UserRole[] },
+  ): FormArraySchema<UserRole, FormSchemaElement<any, UserRole>> {
+    const { fields, conditions } = schema;
+    const formArray = new FormArraySchema<UserRole>({ key: schema.key, fields: [], conditions }, options);
+
+    fields.forEach((value) => {
+      formArray.push(value instanceof AbstractControl ? value : this._createControl(value, options));
+    });
+
+    return formArray;
   }
 
   public control<UserRole extends string = string, T extends ControlSchema<UserRole> = any>(
@@ -61,6 +51,36 @@ export class NgxFormSchemaBuilder {
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions & { userRoles?: UserRole[] } | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null): FormControlSchema<UserRole> {
     return new FormControlSchema<UserRole>(template, validatorOrOpts, asyncValidator)
+  }
+
+
+
+
+
+
+  private _createControl<UserRole extends string = string>(value: AbstractControl | ControlSchema | GroupSchema | ArraySchema, options?: (AbstractControlOptions | { [key: string]: any }) & { userRoles?: UserRole[] }) {
+    const isObj = typeof value === "object";
+    const isControlSchema = isObj && value?.hasOwnProperty('key') && !value.hasOwnProperty('fields');
+    const isGroupSchema = isObj && 'fields' in value && !Array.isArray(value.fields);
+    const isArraySchema = isObj && 'fields' in value && Array.isArray(value.fields);
+    const newFormBuilder = this.useNonNullable
+      ? new NgxFormSchemaBuilder().nonNullable
+      : new NgxFormSchemaBuilder();
+    const childOptions: { userRoles?: UserRole[]; } | undefined = !!options && typeof options === 'object' && options.hasOwnProperty('userRoles')
+      ? { userRoles: options.userRoles }
+      : undefined;
+
+    if (isGroupSchema) {
+      return newFormBuilder.group<UserRole>(value as GroupSchema<UserRole>, childOptions);
+    }
+    else if (isArraySchema) {
+      return newFormBuilder.array<UserRole>(value as ArraySchema<UserRole>, childOptions);
+    }
+    else if (isControlSchema) {
+      return new FormControlSchema<UserRole>(value as ControlSchema<UserRole>, { nonNullable: this.useNonNullable });
+    }
+
+    return null;
   }
 }
 
@@ -73,13 +93,14 @@ export class NgxFormSchemaBuilder {
 })
 export abstract class NgxNonNullableFormSchemaBuilder {
   abstract group<UserRole extends string = string, T extends Record<string, any> = Record<string, any>>(
-    template: T,
+    schema: T,
     options?: (AbstractControlOptions | { [key: string]: any }) & { userRoles?: UserRole[] } | null,
   ): FormGroupSchema<UserRole, { [K in keyof T]: FormSchemaElement<T[K], UserRole> }>;
 
-  /*abstract array<T>(
-    controls: Array<T>, validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
-    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null): FormArray<ɵElement<T, never>>;*/
+  abstract array<UserRole extends string = string>(
+    schema: ArraySchema<UserRole>,
+    options?: (AbstractControlOptions | { [key: string]: any }) & { userRoles?: UserRole[] } | null
+  ): FormArraySchema<UserRole>;
 
   abstract control<UserRole extends string = string, T extends ControlSchema<UserRole> = any>(
     template: ControlSchema<UserRole>,

@@ -1,6 +1,8 @@
 import { Observable } from "rxjs";
 import { FormControlSchema } from "./models/form-control-schema";
 import { FormGroupSchema } from "./models/form-group-schema";
+import { FormArraySchema } from "./models/form-array-schema";
+
 
 export enum FormSchemaFieldType {
   TEXT = 'text',
@@ -23,9 +25,12 @@ export enum FormSchemaFieldType {
   COLOR = 'color',
 }
 
+
 export type FormSchemaFieldSize = 'sm' | 'md' | 'lg' | 'full';
 
+
 export type ComparisonOperator = "==" | "!=" | "<" | ">" | "<=" | ">=";
+
 
 export type UseValueCondition = {
   /**
@@ -55,6 +60,7 @@ export type UseValueCondition = {
   condition: string
 };
 
+
 /**
  * The permission settings that define which roles have access for reading or writing.
  */
@@ -65,10 +71,12 @@ export type FormSchemaPermissionSettings<T extends string> = {
   write: T[];
 };
 
+
 export type FormSchemaFieldOptions = {
   label: string;
   value: string | number | boolean;
 };
+
 
 export type FormSchemaValidators = {
   /** Indicate whether the field is mandatory. */
@@ -97,6 +105,7 @@ export type FormSchemaValidators = {
   // TODO: implement validation by pattern
   // pattern?: string
 };
+
 
 export type FormSchemaConditions = {
   /**
@@ -225,29 +234,40 @@ export type ControlSchema<UserRole extends string = string, T = string | number 
   | ControlSchemaAbstract<UserRole, string> & { type: Omit<FormSchemaFieldType, 'NUMBER' | 'RANGE' | 'CHECKBOX' | 'SELECT' | 'RADIO'> };
 
 
-export type GroupSchema<UserRole extends string = string, T extends { [K in keyof T]: ControlOrGroupSchema<UserRole> | FormControlOrGroupSchema } = {}> = {
+export type AbstractSchema = {
   conditions?: {},
-  key?: string,
-  fields: { [K in keyof T]: ControlOrGroupSchema<UserRole> | FormControlOrGroupSchema }
+  key?: string
 }
 
-export type ControlOrGroupSchema<UserRole extends string = string, T extends {[K in keyof T]: any} = any> = ControlSchema<UserRole> | GroupSchema<UserRole, T>;
+
+export type GroupSchema<UserRole extends string = string, T extends { [K in keyof T]: ControlOrGroupSchema<UserRole> | FormControlOrGroupSchema } = {}> =
+  AbstractSchema & { fields: { [K in keyof T]: ControlOrGroupSchema<UserRole> | FormControlOrGroupSchema }; }
+
+
+export type ArraySchema<UserRole extends string = string> =
+  AbstractSchema & { fields: (ControlOrGroupSchema<UserRole> | FormControlOrGroupSchema<UserRole>)[] };
+
+
+export type ControlOrGroupSchema<UserRole extends string = string, T extends { [K in keyof T]: any } = any> = ControlSchema<UserRole> | GroupSchema<UserRole, T> | ArraySchema<UserRole>;
 
 
 export type FormSchemaElement<T extends FormControlOrGroupSchema, R extends string = string> =
   T extends FormControlSchema ? FormControlSchema<R> :
   T extends FormGroupSchema ? FormGroupSchema<R> :
+  T extends FormArraySchema ? FormArraySchema<R> :
   never;
 
 
-export type FormControlOrGroupSchema = FormControlSchema | FormGroupSchema;
+export type FormControlOrGroupSchema<UserRole extends string = string> = FormControlSchema<UserRole> | FormGroupSchema<UserRole> | FormArraySchema<UserRole>;
 
 
 export type GroupSchemaControls<
   UserRole extends string,
   T extends { [K in keyof T]: FormSchemaElement<FormControlOrGroupSchema, UserRole> } = {}
-> = {
-  conditions?: {},
-  key?: string,
-  fields: T
-};
+> = AbstractSchema & { fields: T };
+
+
+export type ArraySchemaControls<
+  UserRole extends string,
+  T extends FormSchemaElement<FormControlOrGroupSchema, UserRole>[] = []
+> = AbstractSchema & { fields: T };

@@ -3,6 +3,6 @@ import { NgxFormSchemaBuilder } from './services/ngx-form-schema-builder.service
 
 
 @NgModule({
-  providers: [NgxFormSchemaBuilder],
+  //providers: [NgxFormSchemaBuilder],
 })
 export class NgxFormSchemaModule { }
