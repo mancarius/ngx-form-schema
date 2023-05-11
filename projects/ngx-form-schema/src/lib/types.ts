@@ -161,7 +161,7 @@ type ControlSchemaValueType<TField extends FormSchemaFieldType> =
 /**
  * The template that defines the schema of the field, including validation, display settings, etc.
  */
-export type ControlSchemaTemplateAbstract<UserRole extends string = string, T = any> = {
+export type ControlSchemaAbstract<UserRole extends string = string, T = any> = {
   /** Field label */
   label: string;
   /** Field placeholder */
@@ -173,7 +173,7 @@ export type ControlSchemaTemplateAbstract<UserRole extends string = string, T = 
   /** Field type, as defined in the `FormSchemaFieldType` enumeration */
   type: FormSchemaFieldType;
   /** Default value */
-  defaultValue: T;
+  defaultValue: T | null;
   /** Indicates whether the field is read-only */
   readonly?: boolean;
   /** Indicates if the field is disabled. When it is disabled it is not validated. */
@@ -217,20 +217,36 @@ export type ControlSchemaTemplateAbstract<UserRole extends string = string, T = 
   props?: { [key: string]: any }
 }
 
-export type ControlSchemaTemplate<UserRole extends string = string, T = string | number | boolean> =
-  | ControlSchemaTemplateAbstract<UserRole, number> & { type: FormSchemaFieldType.NUMBER | FormSchemaFieldType.RANGE }
-  | ControlSchemaTemplateAbstract<UserRole, boolean> & { type: FormSchemaFieldType.CHECKBOX }
-  | ControlSchemaTemplateAbstract<UserRole, T> & { type: FormSchemaFieldType.SELECT | FormSchemaFieldType.RADIO }
-  | ControlSchemaTemplateAbstract<UserRole, string>;
 
-export type FormSchemaElement<T, R extends string = string> =
-  [T] extends [FormControlSchema<R>] ? FormControlSchema<R> :
-  [T] extends [FormGroupSchema<R, infer S>] ? FormGroupSchema<R, S> :
-  [T] extends [ControlSchemaTemplate<R>] ? ControlSchemaTemplate<R> :
-  [T] extends [GroupSchemaTemplate<R, infer T>] ? GroupSchemaTemplate<R, T> :
-  unknown;
+export type ControlSchema<UserRole extends string = string, T = string | number | boolean> =
+  | ControlSchemaAbstract<UserRole, number> & { type: FormSchemaFieldType.NUMBER | FormSchemaFieldType.RANGE }
+  | ControlSchemaAbstract<UserRole, boolean> & { type: FormSchemaFieldType.CHECKBOX }
+  | ControlSchemaAbstract<UserRole, T> & { type: FormSchemaFieldType.SELECT | FormSchemaFieldType.RADIO }
+  | ControlSchemaAbstract<UserRole, string> & { type: Omit<FormSchemaFieldType, 'NUMBER' | 'RANGE' | 'CHECKBOX' | 'SELECT' | 'RADIO'> };
 
-export type GroupSchemaTemplate<UserRole extends string = string, T extends { [K in keyof T]: FormSchemaElement<T, UserRole> } = any> = {
+
+export type GroupSchema<UserRole extends string = string, T extends { [K in keyof T]: ControlOrGroupSchema<UserRole> | FormControlOrGroupSchema } = {}> = {
+  conditions?: {},
+  key?: string,
+  fields: { [K in keyof T]: ControlOrGroupSchema<UserRole> | FormControlOrGroupSchema }
+}
+
+export type ControlOrGroupSchema<UserRole extends string = string, T extends {[K in keyof T]: any} = any> = ControlSchema<UserRole> | GroupSchema<UserRole, T>;
+
+
+export type FormSchemaElement<T extends FormControlOrGroupSchema, R extends string = string> =
+  T extends FormControlSchema ? FormControlSchema<R> :
+  T extends FormGroupSchema ? FormGroupSchema<R> :
+  never;
+
+
+export type FormControlOrGroupSchema = FormControlSchema | FormGroupSchema;
+
+
+export type GroupSchemaControls<
+  UserRole extends string,
+  T extends { [K in keyof T]: FormSchemaElement<FormControlOrGroupSchema, UserRole> } = {}
+> = {
   conditions?: {},
   key?: string,
   fields: T

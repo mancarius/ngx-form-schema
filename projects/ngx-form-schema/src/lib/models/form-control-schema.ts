@@ -1,12 +1,12 @@
 import { AbstractControl, AsyncValidatorFn, FormArray, FormControl, FormControlOptions, FormGroup, ValidatorFn } from "@angular/forms";
 import { BehaviorSubject, shareReplay, Observable, filter, startWith, distinctUntilChanged, Subject, switchMap } from "rxjs";
-import { ControlSchemaTemplate, ControlSchemaTemplateAbstract, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "../types";
+import { ControlSchema, ControlSchemaAbstract, FormSchemaConditions, FormSchemaFieldOptions, FormSchemaFieldSize, FormSchemaFieldType, FormSchemaPermissionSettings, FormSchemaValidators } from "../types";
 import { compile, evalExpr } from 'jse-eval';
 import { get } from "../helpers";
 import { FormGroupSchema } from "./form-group-schema";
 import { CONTROL_SELF_REF } from "../constants";
 
-type TemplateKeys = keyof ControlSchemaTemplate<string>;
+type TemplateKeys = keyof ControlSchema<string>;
 
 type Writeable<T> = { -readonly [P in keyof T]-?: T[P] };
 
@@ -21,7 +21,7 @@ type Writeable<T> = { -readonly [P in keyof T]-?: T[P] };
  *
  * @template UserRole il tipo di ruolo utente associato al campo
  */
-export class FormControlSchema<UserRole extends string = string> extends FormControl implements ControlSchemaTemplateAbstract<UserRole> {
+export class FormControlSchema<UserRole extends string = string> extends FormControl implements ControlSchemaAbstract<UserRole> {
 
   public readonly label: string = '';
   public readonly placeholder?: string = undefined;
@@ -66,7 +66,7 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
    * @ Constructor
    */
   constructor(
-    _template: ControlSchemaTemplate<UserRole>,
+    _template: ControlSchema<UserRole>,
     validatorOrOpts?: FormControlOptions & { userRoles?: UserRole[] } | ValidatorFn | ValidatorFn[] | null | undefined,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null | undefined
   ) {

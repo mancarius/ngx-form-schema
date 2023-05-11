@@ -1,7 +1,6 @@
-import { FormArray, FormControl } from '@angular/forms';
 import { AbstractControl, AbstractControlOptions, FormGroup, ValidatorFn } from '@angular/forms';
 import { FormControlSchema } from './form-control-schema';
-import { FormSchemaElement, GroupSchemaTemplate } from '../types';
+import { FormSchemaElement, GroupSchemaControls } from '../types';
 
 /**
  * Estende la classe FormGroup di Angular con la possibilità di impostare i ruoli dell'utente
@@ -9,12 +8,12 @@ import { FormSchemaElement, GroupSchemaTemplate } from '../types';
  */
 export class FormGroupSchema<
   UserRole extends string = string,
-  TControl extends { [K in keyof TControl]: FormSchemaElement<TControl, UserRole>; } = any,
-> extends FormGroup {
+  TControls extends Record<string, FormSchemaElement<any, UserRole>> = any,
+  > extends FormGroup<TControls> {
   public key: string | number | undefined = undefined;
-  public override controls: {
-    [key: string]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControl>
-  } = {};
+  /*public override controls: {
+    [K in keyof TControls]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControls>
+  } = {};*/
 
   private _userRoles: UserRole[] = [];
 
@@ -26,15 +25,15 @@ export class FormGroupSchema<
    *
    * @param validatorOrOpts Opzioni di validazione per il gruppo.
    */
-  constructor(template: GroupSchemaTemplate<UserRole, TControl>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: UserRole[] } | ValidatorFn[]) {
-    const { fields, key } = template;
+  constructor(schema: GroupSchemaControls<UserRole, TControls>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: UserRole[] } | ValidatorFn[]) {
+    const { fields, key } = schema;
     // Se "fields" è un array, lo converto in un oggetto con chiavi e valori.
     // In caso contrario, lascio "fields" così com'è.
-    const controls = Array.isArray(fields) ?
+    const controls: TControls = Array.isArray(fields) ?
       fields.reduce((acc, curr) => {
         acc[curr.key] = curr;
         return acc;
-      }, {} as { [key: string]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControl> }) :
+      }, {} as { [key: string]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControls> }) :
       fields;
 
     super(controls, validatorOrOpts);
@@ -46,7 +45,7 @@ export class FormGroupSchema<
     }
   }
 
-  public override get<P extends FormGroupSchema<UserRole, TControl> | FormControlSchema<UserRole>>(path: any): P { return super.get(path) as P; }
+  public override get<P extends FormGroupSchema<UserRole, TControls> | FormControlSchema<UserRole>>(path: any): P { return super.get(path) as P; }
 
   /**
    * Imposta i ruoli dell'utente per tutti i campi all'interno del gruppo.
@@ -110,7 +109,7 @@ export class FormGroupSchema<
    *
    * @param fn Funzione da eseguire per ogni controllo.
    */
-  private _forEachControl(controls: typeof this.controls, fn: (control: AbstractControl) => void) {
+  private _forEachControl(controls: Record<string, AbstractControl<any, any>>, fn: (control: AbstractControl) => void) {
     // Per ogni controllo all'interno di questo gruppo, eseguo una funzione.
     Object.keys(controls).forEach(key => {
       const control = controls[key];
