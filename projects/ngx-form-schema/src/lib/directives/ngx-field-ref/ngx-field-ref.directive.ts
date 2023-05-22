@@ -1,8 +1,7 @@
 import { Directive, Input, TemplateRef, inject } from '@angular/core';
 
 @Directive({
-  selector: '[ngxFieldRef]',
-  standalone: true
+  selector: '[ngxFieldRef]'
 })
 export class FieldRefDirective {
   @Input() ngxFieldRef!: TemplateRef<unknown> | string;
