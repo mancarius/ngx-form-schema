@@ -20,6 +20,7 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+[![Test](https://github.com/mancarius/ngx-form-schema/actions/workflows/cd.yml/badge.svg)](https://github.com/mancarius/ngx-form-schema/actions/workflows/cd.yml)
 
 <!-- PROJECT LOGO -->
 <br />
