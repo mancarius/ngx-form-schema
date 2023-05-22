@@ -24,7 +24,7 @@ jobs:
           #source-directory: dist/ngx-form-schema
           #build-command: npm run build-demo
       - name: Tag
-        run: ./tag-version.sh
+        run: chmod +x tag-version.sh & ./tag-version.sh
       - run: npm run build:lib
       - name: Publish
         uses: JS-DevTools/npm-publish@v1
