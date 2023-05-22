@@ -190,6 +190,16 @@ export class FormControlSchema<UserRole extends string = string> extends FormCon
     this.refreshRequired(filterDepsSrc);
     this.refreshValue(filterDepsSrc);
     this.refreshValidity(filterDepsSrc);
+
+    // se il campo è disabilitato, non aggiornare lo stato
+    if (this.disabled) return;
+    // se il campo è readonly, non aggiornare lo stato
+    if (this._readonly$.getValue()) return;
+    // se il campo non è visibile, non aggiornare lo stato
+    if (!this._visible$.getValue()) return;
+
+    // Aggiorna lo stato del control
+    this.updateValueAndValidity({ emitEvent: false });
   }
 
   /**
