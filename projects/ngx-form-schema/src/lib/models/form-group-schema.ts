@@ -2,6 +2,7 @@ import { AbstractControl, AbstractControlOptions, FormGroup, ValidatorFn } from 
 import { FormControlSchema } from './form-control-schema';
 import { FormSchemaElement, GroupSchemaControls } from '../types';
 import { forEachControl } from '../helpers/forEachControl';
+import { FormArraySchema } from './form-array-schema';
 
 /**
  * Estende la classe FormGroup di Angular con la possibilità di impostare i ruoli dell'utente
@@ -9,8 +10,9 @@ import { forEachControl } from '../helpers/forEachControl';
  */
 export class FormGroupSchema<
   UserRole extends string = string,
-  TControls extends Record<string, FormSchemaElement<any, UserRole>> = any,
+  TControls extends { [K in keyof TControls]: FormSchemaElement<any, UserRole> } = any,
   > extends FormGroup<TControls> {
+
   public key: string | number | undefined = undefined;
 
   private _userRoles: UserRole[] = [];
@@ -25,16 +27,8 @@ export class FormGroupSchema<
    */
   constructor(schema: GroupSchemaControls<UserRole, TControls>, validatorOrOpts?: ValidatorFn | AbstractControlOptions & { userRoles?: UserRole[] } | ValidatorFn[]) {
     const { fields, key } = schema;
-    // Se "fields" è un array, lo converto in un oggetto con chiavi e valori.
-    // In caso contrario, lascio "fields" così com'è.
-    const controls: TControls = Array.isArray(fields) ?
-      fields.reduce((acc, curr) => {
-        acc[curr.key] = curr;
-        return acc;
-      }, {} as { [key: string]: FormControlSchema<UserRole> | FormGroupSchema<UserRole, TControls> }) :
-      fields;
 
-    super(controls, validatorOrOpts);
+    super(fields, validatorOrOpts);
 
     this.key = key;
 
@@ -56,7 +50,7 @@ export class FormGroupSchema<
     this._updateChildrenUserRoles();
   }
 
-  public override addControl<K extends string>(name: K, control: TControls[K], options?: {
+  public override addControl<K extends string & keyof TControls>(name: K, control: TControls[K], options?: {
     emitEvent?: boolean;
   }): void {
     if (control instanceof FormControlSchema || control instanceof FormGroupSchema) {
@@ -69,13 +63,21 @@ export class FormGroupSchema<
   public override setControl<K extends string & keyof TControls>(name: K, control: TControls[K], options?: {
     emitEvent?: boolean;
   }): void {
-    if (super.controls[name] instanceof FormControlSchema || super.controls[name] instanceof FormGroupSchema) {
+    if (this.controls[name] instanceof FormControlSchema || this.controls[name] instanceof FormGroupSchema || this.controls[name] instanceof FormArraySchema) {
       // update value and validity by schema
-      this._userRoles.length > 0 && (super.controls[name] as FormControlSchema).setUserRoles(this._userRoles);
-      (super.controls[name] as FormControlSchema).checkConditionsAndUpdateState();
+      this._userRoles.length > 0 && (this.controls[name] as FormControlSchema).setUserRoles(this._userRoles);
+      (this.controls[name] as FormControlSchema).checkConditionsAndUpdateState();
     }
 
     super.setControl(name, control, options);
+  }
+
+  /**
+   * Restituisce i controlli del gruppo.
+   * @returns
+   */
+  public getControls(): TControls {
+    return this.controls as TControls;
   }
 
   /**
