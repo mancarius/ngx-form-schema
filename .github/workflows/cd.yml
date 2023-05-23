@@ -27,15 +27,16 @@ jobs:
           #source-directory: dist/ngx-form-schema
           #build-command: npm run build-demo
 
+      # Build the package
+      - name: Build the package
+        run: npm run build:lib
+
       # Publish to npm if this version is not published yet
       - name: Publish
         uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
           package: ./projects/ngx-form-schema/package.json
-      - if: steps.publish.outputs.type != 'none'
-        run: |
-          echo "Version changed: ${{ steps.publish.outputs.old-version }} => ${{ steps.publish.outputs.version }}"
 
       # Push tag to GitHub if package.json version's tag is not tagged
       - name: package-version
