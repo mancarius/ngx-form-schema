@@ -4,7 +4,7 @@ import { ControlSchema, FormSchemaFieldType } from 'ngx-form-schema';
 
 type UserRole = 'admin' | 'user';
 
-fdescribe('FormGroupSchema', () => {
+describe('FormGroupSchema', () => {
   let formGroup: FormGroupSchema;
   const mockSchemas: { [key: string]: ControlSchema<UserRole> } = {
     name: { key: 'name', label: 'Name', type: FormSchemaFieldType.TEXT, defaultValue: 'foo' },
