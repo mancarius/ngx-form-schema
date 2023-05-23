@@ -20,7 +20,7 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
-[![Test](https://github.com/mancarius/ngx-form-schema/actions/workflows/cd.yml/badge.svg)](https://github.com/mancarius/ngx-form-schema/actions/workflows/cd.yml)
+[![Test][test-shield]][test-url]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -182,8 +182,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/mattia-mancarella/) - hello@mattiamancarella.com
-
 Project Link: [https://github.com/mancarius/ngx-form-schema](https://github.com/mancarius/ngx-form-schema)
 
 <!-- MARKDOWN LINKS & IMAGES -->
@@ -202,3 +200,5 @@ Project Link: [https://github.com/mancarius/ngx-form-schema](https://github.com/
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/mattia-mancarella/
 [product-screenshot]: images/screenshot.png
+[test-shield]: https://github.com/mancarius/ngx-form-schema/actions/workflows/cd.yml/badge.svg
+[test-url]: https://github.com/mancarius/ngx-form-schema/actions/workflows/cd.yml
