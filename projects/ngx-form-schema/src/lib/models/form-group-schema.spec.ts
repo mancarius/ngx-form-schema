@@ -1,6 +1,6 @@
 import { FormGroupSchema } from './form-group-schema';
 import { FormControlSchema } from './form-control-schema';
-import { ControlSchema, FormSchemaFieldType } from 'ngx-form-schema';
+import { ControlSchema, FormSchemaFieldType } from '../types';
 
 type UserRole = 'admin' | 'user';
 

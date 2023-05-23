@@ -1,8 +1,8 @@
 import { AbstractControl, AbstractControlOptions, FormArray, ValidatorFn } from '@angular/forms';
 import { FormControlSchema } from './form-control-schema';
-import { ArraySchemaControls, FormSchemaElement, GroupSchemaControls } from '../types';
-import { FormGroupSchema } from 'ngx-form-schema';
+import { ArraySchemaControls, FormSchemaElement } from '../types';
 import { forEachControl } from '../helpers/forEachControl';
+import { FormGroupSchema } from './form-group-schema';
 
 
 export class FormArraySchema<

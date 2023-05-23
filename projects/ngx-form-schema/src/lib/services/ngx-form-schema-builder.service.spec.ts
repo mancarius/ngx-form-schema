@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { NgxFormSchemaBuilder } from './ngx-form-schema-builder.service';
 import { MockService } from 'ng-mocks';
-import { FormControlSchema, FormGroupSchema, FormSchemaFieldType } from 'ngx-form-schema';
 import { FormArraySchema } from '../models/form-array-schema';
+import { FormControlSchema } from '../models/form-control-schema';
+import { FormGroupSchema } from '../models/form-group-schema';
+import { FormSchemaFieldType } from '../types';
 
 fdescribe('NgxFormSchemaBuilder', () => {
   let service: NgxFormSchemaBuilder;

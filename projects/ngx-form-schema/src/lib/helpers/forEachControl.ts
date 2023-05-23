@@ -1,6 +1,6 @@
 import { AbstractControl } from "@angular/forms";
 import { FormArraySchema } from "../models/form-array-schema";
-import { FormGroupSchema } from "ngx-form-schema";
+import { FormGroupSchema } from "../models/form-group-schema";
 
 /**
  * Esegue una funzione per ogni controllo all'interno del gruppo.

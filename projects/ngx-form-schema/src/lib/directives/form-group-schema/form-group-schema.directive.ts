@@ -1,6 +1,6 @@
 import { Directive, Inject, Input, Optional, Provider, Self, forwardRef } from '@angular/core';
 import { AsyncValidator, AsyncValidatorFn, ControlContainer, FormGroupDirective, NG_ASYNC_VALIDATORS, NG_VALIDATORS, Validator, ValidatorFn } from '@angular/forms';
-import { FormGroupSchema } from 'ngx-form-schema';
+import { FormGroupSchema } from '../../models/form-group-schema';
 
 
 const formDirectiveProvider: Provider = {
