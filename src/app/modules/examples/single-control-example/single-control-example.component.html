@@ -31,3 +31,6 @@
 
 <p>Current value: {{control.value}} ({{typeOfValue}})</p>
 <p>Current type: {{control.type}}</p>
+<ng-container *ngIf="control.invalid">
+<pre [ngStyle]="{color: 'red'}">{{control.errors | json}}</pre>
+</ng-container>

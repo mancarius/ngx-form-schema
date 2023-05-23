@@ -11,7 +11,7 @@ import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-vertical-nav',
   standalone: true,
-  imports: [CommonModule, MatTreeModule, FormsModule, ReactiveFormsModule, MatIconModule, RouterModule, MatButtonModule],
+  imports: [CommonModule, MatTreeModule, MatIconModule, RouterModule, MatButtonModule],
   templateUrl: './vertical-nav.component.html',
   styleUrls: ['./vertical-nav.component.css']
 })

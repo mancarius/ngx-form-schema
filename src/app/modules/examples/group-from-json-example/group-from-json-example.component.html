@@ -1,0 +1,16 @@
+<header>
+  <h2>Form group by json schema</h2>
+</header>
+<app-form-composer [formGroupSchema]="group">
+  <ng-template ngxFieldRef let-control>
+    <p>
+      <app-field-composer [formControl]="control"></app-field-composer>
+    </p>
+  </ng-template>
+</app-form-composer>
+<div>
+  <input type="button" value="Reset value" (click)="reset()" />
+</div>
+<p>Form value:</p>
+<pre>{{ group.value | json }}</pre>
+<p>Is valid: {{group.valid}}</p>

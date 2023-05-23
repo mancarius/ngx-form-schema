@@ -1,0 +1,21 @@
+<ng-container *ngFor="let control of controls">
+  <container-element [ngSwitch]="getControlType(control)">
+
+    <ng-container *ngSwitchCase="'control'" [ngTemplateOutlet]="fieldTemplate.getTemplate()"
+      [ngTemplateOutletContext]="{$implicit:control}"></ng-container>
+
+    <app-form-composer *ngSwitchCase="'group'" [formGroupSchema]="asFormGroupSchema(control)">
+      <ng-template *ngxFieldRef="fieldTemplate.templateRef" let-control></ng-template>
+    </app-form-composer>
+
+    <ng-container *ngSwitchCase="'array'">
+      <ng-container *ngFor="let c of getControls(control)" [ngTemplateOutlet]="fieldTemplate.getTemplate()"
+        [ngTemplateOutletContext]="{$implicit:c}"></ng-container>
+    </ng-container>
+
+    <ng-container *ngSwitchDefault>
+      <p>Ops!</p>
+    </ng-container>
+
+  </container-element>
+</ng-container>

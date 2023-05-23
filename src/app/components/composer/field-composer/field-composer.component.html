@@ -1,0 +1,16 @@
+<label *ngIf="!!control.label" [for]="control.key">{{control.label}}</label>
+
+<container-element [ngSwitch]="control.type">
+
+  <textarea *ngSwitchCase="fieldTypes.TEXTAREA" [id]="control.key" [formControl]="control" class="size-{{control.size}}"
+    [readonly]="control.readonly$ | async" [placeholder]="control.placeholder"></textarea>
+
+  <select *ngSwitchCase="fieldTypes.SELECT" [formControl]="control">
+    <option *ngFor="let option of control.options$ | async" [value]="option" [disabled]="control.readonly$ | async">
+      {{option}}</option>
+  </select>
+
+  <input *ngSwitchDefault [id]="control.key" [type]="control.type" [formControl]="control" class="size-{{control.size}}"
+    [readonly]="control.readonly$ | async" [placeholder]="control.placeholder" />
+
+</container-element>

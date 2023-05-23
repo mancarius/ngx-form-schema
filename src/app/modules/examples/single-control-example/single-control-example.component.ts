@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlSchemaTemplate, FormControlSchema, FormSchemaFieldType, CONTROL_SELF_REF } from 'ngx-form-schema';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormControlSchema, FormSchemaFieldType, CONTROL_SELF_REF, ControlSchema } from 'ngx-form-schema';
+import { ReactiveFormsModule, Validators } from '@angular/forms';
 
-const FORM_CONTROL_SCHEMA: ControlSchemaTemplate = {
+const FORM_CONTROL_SCHEMA: ControlSchema = {
   key: 'counter',
   label: 'Counter',
   defaultValue: 0,
@@ -44,6 +44,6 @@ export class SingleControlExampleComponent implements OnInit {
   }
 
   protected reset(): void {
-    this.control = new FormControlSchema(FORM_CONTROL_SCHEMA);
+    this.control = new FormControlSchema(FORM_CONTROL_SCHEMA, Validators.required);
   }
 }
