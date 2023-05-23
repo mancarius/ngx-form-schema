@@ -1,4 +1,4 @@
-name: Deploy
+name: CD
 env:
   CI: true
 on:
@@ -8,24 +8,38 @@ on:
     tags:
       - "!*" # ignore tags
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: setup Node
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: npm install
-      - run: npm run test -- --watch=false --browsers=ChromeHeadless
-      #- name: Github pages
-        #uses: sterlingwes/gh-pages-deploy-action@v1.1
-        #with:
-          #access-token: ${{ secrets.ACCESS_TOKEN }}
-          #source-directory: dist/ngx-form-schema
-          #build-command: npm run build-demo
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+
+  release:
+    runs-on: ubuntu-latest
+    if: ${{success()}}
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
 
       # Build the package
       - name: Build the package
@@ -36,10 +50,18 @@ jobs:
         uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
-          package: ./projects/ngx-form-schema/package.json
+          package: ./dist/ngx-form-schema/package.json
+
+  push_tag:
+    runs-on: ubuntu-latest
+    if: ${{success()}}
+    needs: release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
       # Push tag to GitHub if package.json version's tag is not tagged
-      - name: package-version
+      - name: Get package version
         run: node -p -e '`PACKAGE_VERSION=${require("./projects/ngx-form-schema/package.json").version}`' >> $GITHUB_ENV
 
       - name: Create tag from package version
